@@ -1,3 +1,1 @@
-To run, in testParse.txt, change the text file that is being passed to MyTypeCheckTest.java
-Some of the test cases pass, some do not, but I am still aiming for partial credit.
-jflex and jcup files provided as well.
+To run any test/example file, simply run Makefile and edit file that you want to run within the makefile.
