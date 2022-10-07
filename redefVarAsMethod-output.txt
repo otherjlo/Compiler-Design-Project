@@ -1,0 +1,6 @@
+class x {
+char y;
+void y()
+{
+}
+ }Type checking complete!

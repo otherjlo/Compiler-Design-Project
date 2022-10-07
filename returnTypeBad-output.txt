@@ -1,0 +1,6 @@
+class x {
+int foo()
+{
+	return 1.0;
+ }
+ }Types not coercible!

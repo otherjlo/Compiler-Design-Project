@@ -1,0 +1,6 @@
+class x {
+void main()
+{
+	float y = false;
+}
+ }Types not coercible!

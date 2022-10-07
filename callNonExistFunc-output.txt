@@ -1,0 +1,6 @@
+class x {
+void main()
+{
+	nonExistFoo( );
+ }
+ }Method has not been defined!

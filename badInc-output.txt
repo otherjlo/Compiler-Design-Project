@@ -1,0 +1,7 @@
+class x {
+void main()
+{
+	char y;
+	y++;
+ }
+ }This type is not coercible!

@@ -1,0 +1,6 @@
+class x {
+int main()
+{
+	int y = 'c'();
+}
+ }Method has not been defined!

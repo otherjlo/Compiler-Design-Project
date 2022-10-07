@@ -1,0 +1,5 @@
+class x {
+int main()
+{
+}
+ }Method must have return!

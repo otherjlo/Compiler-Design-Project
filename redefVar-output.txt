@@ -1,0 +1,4 @@
+class x {
+int y;
+char y;
+ }Cannot redeclare variable!

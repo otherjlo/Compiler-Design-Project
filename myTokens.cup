@@ -1,0 +1,371 @@
+
+import java_cup.runtime.*;
+
+terminal READ;
+terminal PRINT;
+terminal PRINTLINE;
+terminal TRUE;
+terminal FALSE;
+terminal TIMES;
+terminal PLUS;
+terminal MINUS;
+terminal DIVIDE;
+terminal SEMI;
+terminal ASSMNT;
+terminal LESSTHAN;
+terminal GREATERTHAN;
+terminal LESSEQUAL;
+terminal GREATEREQUAL;
+terminal EQUAL;
+terminal DIAMOND;
+terminal OR;
+terminal AND;
+terminal OPENPAREN;
+terminal CLOSEPAREN;
+terminal OPENBRACE;
+terminal CLOSEBRACE;
+terminal OPENBRACKET;
+terminal CLOSEBRACKET;
+terminal INCREMENT;
+terminal DECREMENT;
+terminal COLON;
+terminal COMMA;
+terminal QUESTION;
+terminal TILDE;
+
+terminal BOOL;
+terminal CLASS;
+terminal CHAR;
+terminal INT;
+terminal FLOAT;
+terminal VOID;
+terminal IF;
+terminal ELSE;
+terminal WHILE;
+terminal RETURN;
+terminal FINAL;
+
+
+terminal String ID;
+terminal int INTLIT;
+terminal String CHARLIT;
+terminal String STRINGLIT;
+terminal float FLOATLIT;
+
+/*
+ * this dummy token is necessary, since at least one non-terminal is
+ * required to run cup
+ */
+non terminal Program program;
+non terminal Memberdecls memberdecls;
+non terminal Fielddecls fielddecls;
+non terminal Methoddecls methoddecls;
+non terminal Fielddecl fielddecl;
+non terminal Optionalfinal optionalfinal;
+non terminal Optionalexpr optionalexpr;
+non terminal Methoddecl methoddecl;
+non terminal Optionalsemi optionalsemi;
+non terminal Returntype returntype;
+non terminal Type type;
+non terminal Argdecls argdecls;
+non terminal ArgdeclList argdeclList;
+non terminal Argdecl argdecl;
+non terminal Stmts stmts;
+non terminal Stmt stmt;
+non terminal IfEnd ifEnd;
+non terminal Name name;
+non terminal Args args;
+non terminal Readlist readlist;
+non terminal Printlist printlist;
+non terminal Printlinelist printlinelist;
+non terminal Expr expr;
+non terminal Binaryop binaryOp;
+
+
+precedence nonassoc ELSE;
+precedence nonassoc IF;
+
+precedence left COMMA;
+precedence right ASSMNT;
+precedence left OR;
+precedence left AND;
+precedence left EQUAL, DIAMOND;
+precedence left LESSTHAN, GREATERTHAN, LESSEQUAL, GREATEREQUAL;
+precedence left PLUS, MINUS, TILDE;
+precedence left TIMES, DIVIDE;
+precedence right INCREMENT, DECREMENT;
+
+program ::= CLASS ID:i OPENBRACE memberdecls:m CLOSEBRACE
+  {:RESULT = new Program(m, i);:}
+  ;
+  
+memberdecls ::= 
+  fielddecls:f methoddecls:m
+  {:RESULT = new Memberdecls(f, m);:}
+  ;
+  
+fielddecls ::= 
+  fielddecls:f fielddecl: g
+  {:RESULT = new Fielddecls(g,f);:}
+  |
+  {:RESULT = new Fielddecls();:}
+  ;
+
+methoddecls ::= 
+  methoddecl:m methoddecls:n
+  {:RESULT = new Methoddecls(m, n);:}
+  | 
+  {:RESULT = new Methoddecls();:}
+  ;
+  
+fielddecl ::=
+  type:t ID:i SEMI
+  {:RESULT = new Fielddecl(false, t, i);:}
+  |
+  type:t ID:i  ASSMNT expr:e SEMI
+  {:RESULT = new Fielddecl(false, t, i, e);:}
+  |
+  FINAL type:t ID:i SEMI
+  {:RESULT = new Fielddecl(true, t, i);:}
+  |
+  FINAL type:t ID:i ASSMNT expr:e SEMI
+  {:RESULT = new Fielddecl(true, t, i, e);:} 
+  |
+  type:t ID:i OPENBRACKET INTLIT:j CLOSEBRACKET SEMI
+  {:RESULT = new Fielddecl(t, i, j);:}
+  ;
+
+methoddecl ::=
+  type:r ID:i OPENPAREN argdecls:a CLOSEPAREN OPENBRACE fielddecls:f stmts:s CLOSEBRACE SEMI
+  {:RESULT = new Methoddecl(r, i, a, f, s, true);:}
+  |
+  type:r ID:i OPENPAREN argdecls:a CLOSEPAREN OPENBRACE fielddecls:f stmts:s CLOSEBRACE
+  {:RESULT = new Methoddecl(r, i, a, f, s, false);:}
+  ;
+  
+optionalsemi ::=
+  SEMI
+  {:RESULT = new Optionalsemi(true);:}
+  | 
+  {:RESULT = new Optionalsemi(false);:}
+  ;
+  
+type ::=
+  INT
+  {:RESULT = new Type("int");:}
+  |
+  CHAR
+  {:RESULT = new Type("char");:}
+  |
+  BOOL
+  {:RESULT = new Type("bool");:}
+  |
+  FLOAT
+  {:RESULT = new Type("float");:}
+  |
+  VOID
+  {:RESULT = new Type("void");:}
+  ;
+name ::=
+  ID:i
+  {:RESULT = new Name(i);:}
+  |
+  ID:i OPENBRACKET expr:e CLOSEBRACKET
+  {:RESULT = new Name(i, e);:}
+  ;
+argdecls ::=
+  argdeclList:a
+  {:RESULT = new Argdecls(a);:}
+  | 
+  {:RESULT = new Argdecls();:}
+  ;
+  
+argdeclList ::=
+  argdecl:a COMMA argdeclList:b 
+  {:RESULT = new ArgdeclList(a, b);:}
+  | 
+  argdecl:a
+  {:RESULT = new ArgdeclList(a);:}
+  ;
+
+argdecl ::= 
+  type:t ID:i
+  {:RESULT = new Argdecl(t, i, false);:}
+  |
+  type:t ID: i OPENBRACKET CLOSEBRACKET
+  {:RESULT = new Argdecl(t, i, true);:}
+  ;
+  
+stmts ::=
+  stmt:s stmts:t
+  {:RESULT = new Stmts(s, t);:}
+  |
+  {:RESULT = new Stmts();:}
+  ;
+stmt ::=
+  IF OPENPAREN expr:e CLOSEPAREN stmt:s ifEnd:i 
+  {:RESULT = new Stmt(e, s, i);:}
+  |
+  WHILE OPENPAREN expr:e CLOSEPAREN stmt:s
+  {:RESULT = new Stmt(e,s);:}
+  |
+  name:n ASSMNT expr:e SEMI
+  {:RESULT = new Stmt(n, e);:}
+  |
+  READ OPENPAREN readlist:r CLOSEPAREN SEMI
+  {:RESULT = new Stmt(r);:}
+  |
+  PRINT OPENPAREN printlist:p CLOSEPAREN SEMI
+  {:RESULT = new Stmt(p);:}
+  |
+  PRINTLINE OPENPAREN printlinelist:p CLOSEPAREN SEMI
+  {:RESULT = new Stmt(p);:}
+  |
+  ID: i OPENPAREN CLOSEPAREN SEMI
+  {:RESULT = new Stmt(i);:}
+  |
+  ID:i OPENPAREN args:a CLOSEPAREN SEMI
+  {:RESULT = new Stmt(i, a);:}
+  |
+  RETURN SEMI
+  {:RESULT = new Stmt();:}
+  |
+  RETURN expr:e SEMI
+  {:RESULT = new Stmt(e);:}
+  |
+  name:n INCREMENT SEMI
+  {:RESULT = new Stmt(true, n);:}
+  |
+  name:n DECREMENT SEMI
+  {:RESULT = new Stmt(false, n);:}
+  |
+  OPENBRACE fielddecls:f stmts:s CLOSEBRACE optionalsemi:o
+  {:RESULT = new Stmt(f, s, o);:}
+  ;
+  
+ifEnd ::=
+  ELSE stmt:s
+  {:RESULT = new IfEnd(s);:}
+  | 
+  {:RESULT = new IfEnd();:}
+  ;
+
+  
+args ::=
+  expr:e COMMA args:s
+  {:RESULT = new Args(e, s);:}
+  |
+  expr:e
+  {:RESULT = new Args(e);:}
+  ;
+  
+readlist ::= 
+  name: n COMMA readlist:r
+  {:RESULT = new Readlist(n,r);:}
+  |
+  name:n
+  {:RESULT = new Readlist(n);:} 
+  ;
+  
+printlist ::=
+  expr:e COMMA printlist:p 
+  {:RESULT = new Printlist(e, p);:}
+  |
+  expr:e
+  {:RESULT = new Printlist(e);:}
+  ;
+  
+printlinelist ::=
+  printlist:p 
+  {:RESULT = new Printlinelist(p);:}
+  |
+  {:RESULT = new Printlinelist();:}
+  ;
+  
+expr ::=
+  name:n
+  {:RESULT = new Expr(n);:}
+  |
+  ID:i OPENPAREN CLOSEPAREN
+  {:RESULT = new Expr(i);:}
+  |
+  ID:i OPENPAREN args:a CLOSEPAREN
+  {:RESULT = new Expr(i, a);:}
+  |
+  INTLIT:i
+  {:RESULT = new Expr(i);:}
+  |
+  CHARLIT:c
+  {:RESULT = new Expr(c);:}
+  |
+  STRINGLIT:s
+  {:RESULT = new Expr(s, true);:}
+  |
+  FLOATLIT:f
+  {:RESULT = new Expr(f);:}
+  |
+  TRUE
+  {:RESULT = new Expr(true);:}
+  |
+  FALSE
+  {:RESULT = new Expr(false);:}
+  |
+  OPENPAREN expr:e CLOSEPAREN
+  {:RESULT = new Expr(e);:}
+  |
+  TILDE expr:e
+  {:RESULT = new Expr(e, 1);:}
+  |
+  MINUS expr:e
+  {:RESULT = new Expr(e, 2);:}
+  |
+  PLUS expr:e
+  {:RESULT = new Expr(e, 3);:}
+  |
+  OPENPAREN type:t CLOSEPAREN expr:e
+  {:RESULT = new Expr(t, e);:}
+  |
+  binaryOp:b
+  {:RESULT = new Expr(b);:}
+  |
+  OPENPAREN expr:e QUESTION expr:d COLON expr:f CLOSEPAREN
+  {:RESULT = new Expr(e, d, f);:}
+  ;
+  
+  binaryOp ::=
+    expr:lhs TIMES expr:rhs
+    {:RESULT = new Binaryop(lhs, "*", rhs);:}
+    |
+    expr:lhs DIVIDE expr:rhs
+    {:RESULT = new Binaryop(lhs, "/", rhs);:}
+    |
+    expr:lhs PLUS expr:rhs
+    {:RESULT = new Binaryop(lhs, "+", rhs);:}
+    |
+    expr:lhs MINUS expr:rhs
+    {:RESULT = new Binaryop(lhs, "-", rhs);:}
+    |
+    expr:lhs LESSTHAN expr:rhs
+    {:RESULT = new Binaryop(lhs, "<", rhs);:}
+    |
+    expr:lhs GREATERTHAN expr:rhs
+    {:RESULT = new Binaryop(lhs, ">", rhs);:}
+    |
+    expr:lhs LESSEQUAL expr:rhs
+    {:RESULT = new Binaryop(rhs, "<=", rhs);:}
+    |
+    expr:lhs GREATEREQUAL expr:rhs
+    {:RESULT = new Binaryop(lhs, ">=", rhs);:}
+    |
+    expr:lhs EQUAL expr:rhs
+    {:RESULT = new Binaryop(lhs, "==", rhs);:}
+    |
+    expr:lhs DIAMOND expr:rhs
+    {:RESULT = new Binaryop(lhs, "<>", rhs);:}
+    |
+    expr:lhs OR expr:rhs
+    {:RESULT = new Binaryop(lhs, "||", rhs);:}
+    |
+    expr:lhs AND expr:rhs
+    {:RESULT = new Binaryop(lhs, "&&", rhs);:}
+    ;
